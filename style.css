@@ -223,6 +223,19 @@ html, body {
 .warning { color: var(--danger); font-weight: 700; margin-left: 4px; }
 .ok      { color: #4caf50;        font-weight: 700; margin-left: 4px; }
 
+.input-error {
+  display: none;
+  color: var(--danger);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  padding: 5px 8px;
+  background: rgba(224, 64, 64, 0.12);
+  border: 1px solid rgba(224, 64, 64, 0.35);
+  border-radius: var(--radius);
+  margin-bottom: 6px;
+}
+
 .panel-footer {
   display: flex; gap: 10px; justify-content: flex-end;
   border-top: 1px solid var(--border); padding-top: 7px;
@@ -537,3 +550,5 @@ html, body {
 ::-webkit-scrollbar       { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+/* Firefox */
+* { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent; }

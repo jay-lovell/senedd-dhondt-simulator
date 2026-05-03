@@ -14,9 +14,9 @@ const PARTIES = [
   { name: 'Reform UK',         abbr: 'REF', color: '#12B6CF', text: '#fff' },
 ];
 
-const NUM_SEATS      = 6;
-const ELEC_MIN       = 122883;
-const ELEC_MAX       = 152545;
+const NUM_SEATS          = 6;
+const ELECTORATE_MIN     = 122883;
+const ELECTORATE_MAX     = 152545;
 
 // ── Application state ────────────────────────────────────
 const state = {
@@ -120,16 +120,37 @@ function resetInputs() {
   document.getElementById('turnout-slider').value = 60;
   document.getElementById('turnout-display').textContent = '60%';
   state.turnout = 60;
+  clearInputError();
   updateTotal();
+}
+
+function showInputError(msg) {
+  let err = document.getElementById('input-error');
+  if (!err) {
+    err = document.createElement('p');
+    err.id = 'input-error';
+    err.className = 'input-error';
+    // Insert before the panel footer
+    const footer = document.querySelector('.panel-footer');
+    footer.parentNode.insertBefore(err, footer);
+  }
+  err.textContent = msg;
+  err.style.display = 'block';
+}
+
+function clearInputError() {
+  const err = document.getElementById('input-error');
+  if (err) err.style.display = 'none';
 }
 
 function confirmInputs() {
   const total = state.percentages.reduce((a, b) => a + b, 0);
   if (total === 0) {
-    alert('Please enter vote percentages for at least one party before confirming.');
+    showInputError('Please enter vote percentages for at least one party before confirming.');
     return;
   }
-  state.electorate = rand(ELEC_MIN, ELEC_MAX);
+  clearInputError();
+  state.electorate = rand(ELECTORATE_MIN, ELECTORATE_MAX);
   state.turnout    = +document.getElementById('turnout-slider').value;
   state.totalVotes = Math.round(state.electorate * (state.turnout / 100));
   state.partyVotes = state.percentages.map(pct =>
@@ -524,8 +545,9 @@ async function advanceDhondt() {
     const seatEl = document.getElementById(`seat-${step.seatNum - 1}`);
     if (seatEl) {
       seatEl.classList.remove('seat-flash');
-      // Force reflow to restart animation
-      void seatEl.offsetWidth;
+      // Reading offsetWidth forces a layout reflow, which resets the CSS
+      // animation so it replays cleanly when the class is re-added.
+      const _triggerReflow = seatEl.offsetWidth; // eslint-disable-line no-unused-vars
       seatEl.classList.add('seat-flash');
       setTimeout(() => seatEl.classList.remove('seat-flash'), 800);
     }
@@ -537,7 +559,8 @@ async function advanceDhondt() {
     const divEl = document.getElementById(`div-label-${step.winner}`);
     if (divEl) {
       divEl.classList.remove('divisor-bump');
-      void divEl.offsetWidth;
+      // Force reflow to restart the CSS animation (same technique as above).
+      const _triggerReflow = divEl.offsetWidth; // eslint-disable-line no-unused-vars
       divEl.classList.add('divisor-bump');
       setTimeout(() => divEl.classList.remove('divisor-bump'), 600);
     }
