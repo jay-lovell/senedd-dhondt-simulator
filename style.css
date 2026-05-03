@@ -1,0 +1,554 @@
+/* ============================================================
+   Senedd D'Hondt Simulator – style.css
+   Mobile-first, landscape orientation
+   ============================================================ */
+
+/* ── Reset & custom properties ─────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:          #0d1b2a;
+  --surface:     rgba(13, 27, 42, 0.93);
+  --border:      rgba(255, 255, 255, 0.14);
+  --text:        #f0f0f0;
+  --muted:       #9aacb8;
+  --gold:        #ffd700;
+  --gold-dim:    rgba(255, 215, 0, 0.15);
+  --primary:     #005b54;
+  --primary-h:   #00796e;
+  --danger:      #e04040;
+
+  /* Party colours */
+  --con: #0087DC;
+  --grn: #00B140;
+  --ind: #6B7280;
+  --lab: #E4003B;
+  --lib: #FAA61A;
+  --pc:  #005B54;
+  --ref: #12B6CF;
+
+  --radius:  8px;
+  --shadow:  0 4px 20px rgba(0,0,0,0.5);
+  --trans:   0.5s ease;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* ── Orientation guard ──────────────────────────────────── */
+.rotate-prompt {
+  display: none;
+  position: fixed; inset: 0;
+  background: #000;
+  z-index: 9999;
+  align-items: center; justify-content: center;
+  text-align: center;
+}
+.rotate-inner { padding: 24px; }
+.rotate-icon  { font-size: 48px; display: block; margin-bottom: 16px; }
+.rotate-inner p { font-size: 16px; color: #ddd; line-height: 1.5; }
+
+@media (orientation: portrait) {
+  .rotate-prompt { display: flex; }
+  #app           { display: none;  }
+}
+
+/* ── App shell ──────────────────────────────────────────── */
+#app {
+  position: relative;
+  width: 100%; height: 100vh;
+}
+
+/* ── Phases ─────────────────────────────────────────────── */
+.phase {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  opacity: 0; pointer-events: none;
+  transition: opacity var(--trans);
+}
+.phase.active {
+  opacity: 1; pointer-events: all;
+}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.btn {
+  padding: 9px 20px;
+  border: none; border-radius: var(--radius);
+  font-size: 13px; font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  border: 2px solid var(--primary-h);
+}
+.btn-primary:hover,
+.btn-primary:focus-visible {
+  background: var(--primary-h);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0,91,84,0.45);
+}
+.btn-secondary {
+  background: rgba(255,255,255,0.09);
+  color: #fff;
+  border: 2px solid rgba(255,255,255,0.2);
+}
+.btn-secondary:hover,
+.btn-secondary:focus-visible {
+  background: rgba(255,255,255,0.18);
+}
+
+/* ════════════════════════════════════════════════════════════
+   PHASE 1 – INPUT
+   ════════════════════════════════════════════════════════════ */
+#phase-input { position: relative; }
+
+.map-bg {
+  position: absolute; inset: 0; overflow: hidden;
+}
+.map-bg svg {
+  width: 100%; height: 100%;
+}
+
+.input-overlay {
+  position: relative; z-index: 10;
+  display: flex;
+  align-items: center; justify-content: center;
+  height: 100%; padding: 6px;
+}
+
+.input-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  width: 100%; max-width: 740px;
+  /* Never taller than the viewport */
+  max-height: 92vh;
+  display: flex; flex-direction: column;
+  padding: 8px 12px;
+  box-shadow: var(--shadow);
+}
+
+.panel-header {
+  display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px; margin-bottom: 7px;
+  flex-shrink: 0;
+}
+.flag { font-size: 26px; line-height: 1; }
+.panel-header h1 {
+  font-size: 20px; color: var(--gold); font-weight: 800; line-height: 1;
+}
+.panel-header .subtitle {
+  font-size: 10px; color: var(--muted); margin-top: 2px;
+}
+
+.panel-body { margin-bottom: 6px; flex-shrink: 0; }
+.instructions {
+  font-size: 10px; color: var(--muted); margin-bottom: 6px;
+}
+
+/* Party input cards grid */
+.party-inputs-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+  margin-bottom: 6px;
+}
+@media (max-width: 600px) {
+  .party-inputs-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.party-input-card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius);
+  padding: 5px 7px;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.party-input-label {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 10px; font-weight: 600; line-height: 1.2;
+}
+.party-dot {
+  width: 9px; height: 9px;
+  border-radius: 50%; flex-shrink: 0;
+}
+.party-pct-display {
+  font-size: 16px; font-weight: 800;
+  color: var(--gold); text-align: center;
+  line-height: 1;
+}
+.party-slider {
+  width: 100%;
+  height: 4px;
+  cursor: pointer;
+}
+
+/* Turnout */
+.turnout-row {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--gold-dim);
+  border: 1px solid rgba(255,215,0,0.28);
+  border-radius: var(--radius);
+  padding: 5px 10px;
+  margin-bottom: 5px;
+}
+.turnout-label {
+  font-size: 12px; font-weight: 700;
+  white-space: nowrap; color: var(--gold);
+}
+.turnout-slider { flex: 1; cursor: pointer; }
+.turnout-value  {
+  font-size: 16px; font-weight: 800;
+  color: var(--gold); min-width: 40px; text-align: right;
+}
+
+/* Total indicator */
+.total-indicator {
+  font-size: 11px; text-align: center; color: var(--muted);
+}
+.warning { color: var(--danger); font-weight: 700; margin-left: 4px; }
+.ok      { color: #4caf50;        font-weight: 700; margin-left: 4px; }
+
+.input-error {
+  display: none;
+  color: var(--danger);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  padding: 5px 8px;
+  background: rgba(224, 64, 64, 0.12);
+  border: 1px solid rgba(224, 64, 64, 0.35);
+  border-radius: var(--radius);
+  margin-bottom: 6px;
+}
+
+.panel-footer {
+  display: flex; gap: 10px; justify-content: flex-end;
+  border-top: 1px solid var(--border); padding-top: 7px;
+  flex-shrink: 0;
+}
+
+/* ════════════════════════════════════════════════════════════
+   PHASE 2 – CALCULATION
+   ════════════════════════════════════════════════════════════ */
+#phase-calc {
+  background: var(--bg);
+  justify-content: center; align-items: center;
+}
+.calc-wrapper {
+  width: 100%; max-width: 560px;
+  padding: 10px 16px;
+  display: flex; flex-direction: column;
+  /* Fill but never overflow the viewport */
+  max-height: 100vh; overflow: hidden;
+}
+.calc-wrapper h2 {
+  font-size: 16px; color: var(--gold);
+  text-align: center; margin-bottom: 8px;
+  flex-shrink: 0;
+}
+.calc-scroll {
+  overflow-y: auto;
+  flex: 1;
+}
+.calc-table {
+  width: 100%; border-collapse: collapse; font-size: 12px;
+}
+.calc-table tr {
+  border-bottom: 1px solid var(--border);
+  opacity: 0; transform: translateY(8px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.calc-table tr.visible {
+  opacity: 1; transform: translateY(0);
+}
+.calc-table td { padding: 5px 10px; }
+.calc-table td:first-child { color: var(--muted); }
+.calc-table td:last-child  { font-weight: 700; text-align: right; }
+.party-row td:last-child   { color: var(--gold); }
+.total-row td              { font-weight: 800; color: #fff; }
+.sep-row td                { padding: 2px; border: none; opacity: 0.3; font-size: 7px; }
+
+.calc-footer { margin-top: 10px; text-align: center; flex-shrink: 0; }
+
+/* ════════════════════════════════════════════════════════════
+   PHASE 3 – BALLOT BOXES
+   ════════════════════════════════════════════════════════════ */
+#phase-ballot { background: var(--bg); overflow: hidden; }
+
+.ballot-wrapper {
+  display: flex; flex-direction: column;
+  height: 100%; padding: 6px 8px;
+}
+.ballot-wrapper h2 {
+  font-size: 15px; color: var(--gold);
+  text-align: center; margin-bottom: 4px; flex-shrink: 0;
+}
+
+/* Particle layer – covers entire screen */
+#particle-layer {
+  position: fixed; inset: 0;
+  pointer-events: none; overflow: hidden; z-index: 5;
+}
+
+/* Ballot boxes row */
+.ballot-boxes-row {
+  display: flex; gap: 6px;
+  justify-content: center; align-items: flex-end;
+  flex: 1; overflow-x: auto;
+  padding: 4px 2px;
+  position: relative; z-index: 6;
+}
+
+/* Shared ballot-box styles (used in phase 3 and phase 4) */
+.ballot-box {
+  flex: 0 0 auto;
+  width: 88px;
+  background: rgba(255,255,255,0.07);
+  border: 2px solid rgba(255,255,255,0.18);
+  border-radius: var(--radius);
+  padding: 8px 4px 6px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 3px;
+  transition: order 0.6s, box-shadow 0.4s, border-color 0.4s;
+  position: relative;
+  min-height: 130px;
+}
+.ballot-box.highlight {
+  border-color: var(--gold);
+  box-shadow: 0 0 16px rgba(255,215,0,0.5);
+}
+.ballot-box.dim { opacity: 0.45; }
+
+.bbox-logo {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 900;
+  flex-shrink: 0; letter-spacing: -0.5px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+.bbox-name {
+  font-size: 9px; font-weight: 600;
+  text-align: center; color: var(--text); line-height: 1.25;
+}
+.bbox-votes {
+  font-size: 12px; font-weight: 800;
+  color: var(--gold); text-align: center; line-height: 1;
+}
+.bbox-rank {
+  position: absolute; top: 3px; right: 5px;
+  font-size: 9px; color: var(--muted);
+}
+.bbox-seats-icons {
+  font-size: 9px; letter-spacing: 1px; line-height: 1;
+}
+
+.ballot-footer {
+  flex-shrink: 0;
+  text-align: center; padding: 6px 0;
+}
+
+/* ════════════════════════════════════════════════════════════
+   PHASE 4 – D'HONDT
+   ════════════════════════════════════════════════════════════ */
+#phase-dhondt { background: var(--bg); }
+
+.dhondt-wrapper {
+  display: flex; flex-direction: column;
+  height: 100%; padding: 6px 8px; gap: 6px;
+}
+
+/* Top section: seats + boxes */
+.dhondt-top {
+  flex: 1; display: flex; flex-direction: column; gap: 6px; overflow: hidden;
+}
+
+/* Seats */
+.seats-section { flex-shrink: 0; text-align: center; }
+.seats-label {
+  font-size: 11px; color: var(--muted); margin-bottom: 5px;
+}
+.seats-row {
+  display: flex; gap: 6px; justify-content: center;
+}
+.seat {
+  width: 46px; height: 46px;
+  border-radius: var(--radius);
+  background: rgba(255,255,255,0.06);
+  border: 2px solid rgba(255,255,255,0.18);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-size: 9px; color: var(--muted);
+  transition: background 0.6s ease, border-color 0.6s ease, box-shadow 0.6s ease;
+  position: relative; overflow: hidden;
+}
+.seat.won {
+  border-color: transparent;
+  color: #fff; font-weight: 800;
+}
+.seat .seat-abbr { font-size: 12px; font-weight: 900; line-height: 1; }
+.seat .seat-num  {
+  position: absolute; bottom: 2px;
+  font-size: 8px; opacity: 0.7; font-weight: 400;
+}
+
+/* D'Hondt ballot boxes */
+.dhondt-boxes-section {
+  flex: 1; overflow: hidden;
+}
+.dhondt-boxes-row {
+  display: flex; gap: 5px;
+  align-items: flex-end;
+  height: 100%;
+  overflow-x: auto;
+  padding: 2px 2px 4px;
+}
+
+/* Smaller variant of ballot box for d'hondt phase */
+.dhondt-boxes-row .ballot-box {
+  width: 82px; min-height: 115px; padding: 6px 3px 5px;
+}
+.dhondt-boxes-row .bbox-logo {
+  width: 32px; height: 32px; font-size: 10px;
+}
+.dhondt-boxes-row .bbox-name    { font-size: 8px; }
+.dhondt-boxes-row .bbox-votes   { font-size: 11px; }
+.bbox-divisor   {
+  font-size: 13px; font-weight: 800;
+  color: var(--gold); text-align: center; line-height: 1;
+}
+.bbox-adjusted  {
+  font-size: 10px; color: var(--muted); text-align: center; line-height: 1;
+}
+.bbox-div-label { font-size: 8px; color: var(--muted); text-align: center; }
+
+/* Bottom: message + button */
+.dhondt-bottom {
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,0.05);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+}
+.dhondt-message-box { flex: 1; }
+.dhondt-message {
+  font-size: 13px; line-height: 1.5; color: var(--text);
+}
+.dhondt-message strong { color: var(--gold); }
+
+/* ════════════════════════════════════════════════════════════
+   PHASE 5 – COMPLETE
+   ════════════════════════════════════════════════════════════ */
+#phase-complete {
+  background: var(--bg);
+  justify-content: center; align-items: center;
+  padding: 16px; overflow-y: auto;
+}
+.complete-wrapper {
+  max-width: 640px; width: 100%; text-align: center;
+}
+.complete-header { margin-bottom: 12px; }
+.confetti-emoji  { font-size: 40px; display: block; margin-bottom: 6px; }
+.complete-header h2 { font-size: 26px; color: var(--gold); }
+.complete-header p  { color: var(--muted); font-size: 14px; margin-top: 4px; }
+
+.final-seats-row {
+  display: flex; gap: 8px;
+  justify-content: center; flex-wrap: wrap;
+  margin: 12px 0;
+}
+.final-seat {
+  width: 78px; height: 78px;
+  border-radius: 10px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: #fff;
+  padding: 4px; text-align: center;
+  box-shadow: var(--shadow);
+}
+.final-seat .fs-abbr { font-size: 20px; font-weight: 900; line-height: 1; }
+.final-seat .fs-num  { font-size: 9px; opacity: 0.75; margin-top: 2px; }
+
+.final-summary {
+  display: flex; gap: 8px;
+  justify-content: center; flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.summary-card {
+  background: rgba(255,255,255,0.07);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 3px;
+  min-width: 100px;
+  border-left: 4px solid transparent;
+}
+.summary-seats { font-size: 26px; font-weight: 900; }
+.summary-name  { font-size: 10px; color: var(--muted); text-align: center; }
+.summary-votes { font-size: 9px;  color: #666; }
+
+/* ════════════════════════════════════════════════════════════
+   ANIMATIONS
+   ════════════════════════════════════════════════════════════ */
+
+/* Falling vote particles */
+@keyframes ballot-fall {
+  0%   { transform: translateY(0) rotate(0deg);   opacity: 1;   }
+  80%  { opacity: 0.8; }
+  100% { transform: translateY(var(--fall-dist)) rotate(var(--spin)); opacity: 0; }
+}
+.vote-particle {
+  position: fixed;
+  width: 9px; height: 13px;
+  border-radius: 2px;
+  animation: ballot-fall var(--dur) var(--delay) ease-in forwards;
+  pointer-events: none; z-index: 5;
+}
+
+/* Seat win flash */
+@keyframes seat-win {
+  0%   { transform: scale(1);    box-shadow: none; }
+  40%  { transform: scale(1.35); box-shadow: 0 0 20px rgba(255,215,0,0.8); }
+  100% { transform: scale(1);    box-shadow: none; }
+}
+.seat-flash { animation: seat-win 0.7s ease; }
+
+/* Divisor bump */
+@keyframes divisor-bump {
+  0%   { transform: scale(1);    color: var(--gold); }
+  50%  { transform: scale(1.6);  color: #fff; }
+  100% { transform: scale(1);    color: var(--gold); }
+}
+.divisor-bump { animation: divisor-bump 0.5s ease; }
+
+/* Row slide-in for calc table */
+/* (handled inline via .visible class transitions) */
+
+/* Subtle pulse on highlighted box */
+@keyframes box-pulse {
+  0%, 100% { box-shadow: 0 0 16px rgba(255,215,0,0.5); }
+  50%       { box-shadow: 0 0 28px rgba(255,215,0,0.9); }
+}
+.ballot-box.highlight { animation: box-pulse 1.4s ease infinite; }
+
+/* Scrollbar styling */
+::-webkit-scrollbar       { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+/* Firefox */
+* { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent; }

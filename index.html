@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0d1b2a">
+  <title>Senedd D'Hondt Simulator – Pontypandy</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Rotate prompt for portrait -->
+  <div id="rotate-prompt" class="rotate-prompt" aria-live="polite">
+    <div class="rotate-inner">
+      <span class="rotate-icon">🔄</span>
+      <p>Please rotate your device to <strong>landscape</strong> mode to use this simulator.</p>
+    </div>
+  </div>
+
+  <div id="app">
+
+    <!-- ── PHASE 1: INPUT ──────────────────────────────── -->
+    <section id="phase-input" class="phase active" aria-label="Enter vote percentages">
+
+      <div class="map-bg" aria-hidden="true">
+        <svg viewBox="0 0 800 450" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="terrain-grad" cx="50%" cy="60%" r="70%">
+              <stop offset="0%" stop-color="#1e4d2b"/>
+              <stop offset="100%" stop-color="#0a2016"/>
+            </radialGradient>
+          </defs>
+          <rect width="800" height="450" fill="url(#terrain-grad)"/>
+          <ellipse cx="100" cy="410" rx="220" ry="90" fill="#15381f" opacity="0.8"/>
+          <ellipse cx="620" cy="390" rx="260" ry="110" fill="#183d23" opacity="0.7"/>
+          <ellipse cx="400" cy="360" rx="320" ry="130" fill="#1c4528" opacity="0.5"/>
+          <!-- River -->
+          <path d="M 30,390 Q 160,350 260,370 Q 360,390 460,350 Q 560,310 660,340 Q 730,360 800,330"
+                stroke="#3a7acc" stroke-width="4" fill="none" opacity="0.55"/>
+          <!-- Constituency boundary -->
+          <polygon points="85,55 205,35 390,22 530,48 660,65 730,135 750,238 708,338 585,398 425,418 285,408 155,378 72,295 52,195 62,115"
+                   fill="rgba(255,215,0,0.04)" stroke="#ffd700" stroke-width="2.5" stroke-dasharray="14,6" opacity="0.65"/>
+          <!-- Roads -->
+          <path d="M 205,35 L 405,205 L 585,398" stroke="#b8903a" stroke-width="1.5" fill="none" opacity="0.4"/>
+          <path d="M 52,195 L 405,205 L 750,238" stroke="#b8903a" stroke-width="1.5" fill="none" opacity="0.4"/>
+          <path d="M 285,408 L 405,205 L 530,48"  stroke="#b8903a" stroke-width="1.5" fill="none" opacity="0.3"/>
+          <!-- Settlements -->
+          <circle cx="405" cy="205" r="12" fill="#ffd700" opacity="0.9"/>
+          <circle cx="268" cy="158" r="7"  fill="#ffd700" opacity="0.7"/>
+          <circle cx="558" cy="228" r="6"  fill="#ffd700" opacity="0.7"/>
+          <circle cx="355" cy="325" r="5"  fill="#ffd700" opacity="0.6"/>
+          <circle cx="488" cy="135" r="5"  fill="#ffd700" opacity="0.6"/>
+          <!-- Labels -->
+          <text x="422" y="200" font-size="13" fill="#ffd700" font-family="Arial,sans-serif" font-weight="bold">✦ Pontypandy</text>
+          <text x="278" y="153" font-size="9"  fill="#d4b44a" font-family="Arial,sans-serif">Trefelin</text>
+          <text x="566" y="223" font-size="9"  fill="#d4b44a" font-family="Arial,sans-serif">Cwm Gwyn</text>
+          <text x="362" y="320" font-size="9"  fill="#d4b44a" font-family="Arial,sans-serif">Bryn Bach</text>
+          <text x="494" y="130" font-size="9"  fill="#d4b44a" font-family="Arial,sans-serif">Y Fforest</text>
+          <!-- Compass rose -->
+          <g transform="translate(752,62)">
+            <circle r="22" fill="rgba(0,0,0,0.55)" stroke="#666" stroke-width="1"/>
+            <polygon points="0,-16 -4,2 4,2"   fill="#cc2222"/>
+            <polygon points="0,16  -4,-2 4,-2"  fill="#888"/>
+            <text x="-4" y="-8"  font-size="10" fill="#fff" font-family="Arial,sans-serif" font-weight="bold">N</text>
+          </g>
+          <text x="10" y="442" font-size="9" fill="#666" font-family="Arial,sans-serif" font-style="italic">Pontypandy Constituency (fictional)</text>
+        </svg>
+      </div>
+
+      <div class="input-overlay">
+        <div class="input-panel" role="form" aria-labelledby="panel-title">
+
+          <div class="panel-header">
+            <span class="flag" aria-hidden="true">🏴󠁧󠁢󠁷󠁬󠁳󠁿</span>
+            <div>
+              <h1 id="panel-title">Pontypandy</h1>
+              <p class="subtitle">Senedd Election Simulator</p>
+            </div>
+          </div>
+
+          <div class="panel-body">
+            <p class="instructions">Enter each party's expected vote share (%), then set turnout.</p>
+            <div class="party-inputs-grid" id="party-inputs" role="group" aria-label="Party vote percentages">
+              <!-- Rendered by JS -->
+            </div>
+            <div class="turnout-row">
+              <label class="turnout-label" for="turnout-slider">Turnout:</label>
+              <input type="range" id="turnout-slider" min="1" max="100" value="60" class="turnout-slider" aria-label="Voter turnout percentage">
+              <span class="turnout-value" id="turnout-display" aria-live="polite">60%</span>
+            </div>
+            <div id="total-indicator" class="total-indicator" aria-live="polite">
+              Total: <span id="total-pct">0</span>% <span id="total-warning" class="warning"></span>
+            </div>
+          </div>
+
+          <div class="panel-footer">
+            <button class="btn btn-secondary" id="btn-reset">↺ Reset</button>
+            <button class="btn btn-primary"   id="btn-confirm">✓ Confirm Votes</button>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PHASE 2: CALCULATION ─────────────────────────── -->
+    <section id="phase-calc" class="phase" aria-label="Vote calculation">
+      <div class="calc-wrapper">
+        <h2>📊 Vote Calculation – Pontypandy</h2>
+        <div class="calc-scroll">
+          <table id="calc-table" class="calc-table" aria-label="Calculated vote figures">
+            <tbody id="calc-tbody"></tbody>
+          </table>
+        </div>
+        <div class="calc-footer">
+          <button class="btn btn-primary" id="btn-to-ballot" style="display:none">Proceed to Ballot Boxes →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PHASE 3: BALLOT BOXES ───────────────────────── -->
+    <section id="phase-ballot" class="phase" aria-label="Ballot boxes">
+      <div class="ballot-wrapper">
+        <h2 id="ballot-heading" aria-live="polite">Counting the votes…</h2>
+        <div id="particle-layer" aria-hidden="true"></div>
+        <div id="ballot-boxes-row" class="ballot-boxes-row" role="list" aria-label="Party ballot boxes"></div>
+        <div class="ballot-footer">
+          <button class="btn btn-primary" id="btn-sort-boxes"  style="display:none">Sort by Votes →</button>
+          <button class="btn btn-primary" id="btn-to-dhondt"   style="display:none">Begin D'Hondt →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PHASE 4: D'HONDT ────────────────────────────── -->
+    <section id="phase-dhondt" class="phase" aria-label="D'Hondt seat allocation">
+      <div class="dhondt-wrapper">
+
+        <div class="dhondt-top">
+          <div class="seats-section">
+            <div class="seats-label">Pontypandy – 6 Seats</div>
+            <div id="seats-row" class="seats-row" role="list" aria-label="Allocated seats"></div>
+          </div>
+          <div class="dhondt-boxes-section">
+            <div id="dhondt-boxes-row" class="dhondt-boxes-row" role="list" aria-label="Party standings"></div>
+          </div>
+        </div>
+
+        <div class="dhondt-bottom">
+          <div class="dhondt-message-box">
+            <p id="dhondt-message" class="dhondt-message" aria-live="polite"></p>
+          </div>
+          <button class="btn btn-primary" id="btn-dhondt-next">Next →</button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── PHASE 5: COMPLETE ───────────────────────────── -->
+    <section id="phase-complete" class="phase" aria-label="Election results">
+      <div class="complete-wrapper">
+        <div class="complete-header">
+          <span class="confetti-emoji" aria-hidden="true">🎉</span>
+          <h2>Election Complete!</h2>
+          <p>All six seats have been allocated in <strong>Pontypandy</strong>.</p>
+        </div>
+        <div id="final-seats"   class="final-seats-row" role="list" aria-label="Elected seats"></div>
+        <div id="final-summary" class="final-summary"   role="list" aria-label="Party seat totals"></div>
+        <button class="btn btn-primary" id="btn-restart">↺ Start Again</button>
+      </div>
+    </section>
+
+  </div><!-- #app -->
+
+  <script src="script.js"></script>
+</body>
+</html>
