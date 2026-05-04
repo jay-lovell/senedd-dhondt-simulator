@@ -470,7 +470,7 @@ function computeDhondtSteps() {
     seatsWon:    [...seatsWon],
     history:     [],
     stampedParties: [],
-    message:     "In the <strong>D'Hondt method</strong>, each party's votes are divided by a divisor — starting at <span class='dv'>1</span>. The party with the highest adjusted total wins the next seat. When a party wins a seat, their divisor increases by <span class='dv'>1</span>, reducing their adjusted total for future rounds.",
+    message:     "Pontypandy elects 6 Members of the Senedd. Rather than the party with the most votes winning everything, seats are shared proportionally using the <strong>D'Hondt method</strong> — so smaller parties still get a fair share.<br><br>Each round, every party's votes are divided by the number of seats they've already won (plus one). The party with the highest result wins the next seat — and their number goes up, making it a little harder for them to win again straight away.",
     btnText:     'Allocate Seat 1 →',
     highlight:   -1,
   });
