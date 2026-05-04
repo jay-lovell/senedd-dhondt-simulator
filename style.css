@@ -924,18 +924,16 @@ html, body {
 }
 
 .footer-feedback {
-  font-size: 8px;
-  padding: 2px 7px;
-  min-height: auto;
+  font-size: 9px;
+  color: var(--muted);
   text-decoration: none;
-  white-space: nowrap;
-  font-weight: 500;
   opacity: 0.6;
-  border-width: 1px;
+  white-space: nowrap;
 }
 .footer-feedback:hover,
 .footer-feedback:focus-visible {
   opacity: 1;
+  color: var(--text);
 }
 
 /* ── Landscape tablet / desktop (1024px+ wide, 600px+ tall) ─ */
