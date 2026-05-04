@@ -600,10 +600,25 @@ function initDhondtPhase() {
   state.stepIndex   = 0;
   dhondtBoxDisplayOrder = [];  // reset sort order for fresh run
 
+  // Render boxes in initial state behind the overlay
+  const step0 = state.dhondtSteps[0];
   renderSeats([]);
-  applyStep(state.dhondtSteps[0]);
+  renderDhondtBoxes(step0.divisors, step0.adjusted, [], -1, [], true);
+
+  // Show intro overlay
+  const overlay  = document.getElementById('dhondt-intro-overlay');
+  const introTxt = document.getElementById('dhondt-intro-text');
+  introTxt.innerHTML = step0.message;
+  overlay.classList.remove('hidden');
+
+  document.getElementById('btn-dhondt-got-it').onclick = () => {
+    overlay.classList.add('hidden');
+    const msgEl = document.getElementById('dhondt-message');
+    msgEl.innerHTML = 'All parties start with a divisor of <span class="dv">1</span>. Click to allocate the first seat.';
+  };
 
   const btn = document.getElementById('btn-dhondt-next');
+  btn.textContent = step0.btnText || 'Allocate Seat 1 →';
   btn.onclick = advanceDhondt;
 }
 
@@ -653,17 +668,7 @@ function applyStep(step) {
   const btn   = document.getElementById('btn-dhondt-next');
   btn.textContent = step.btnText || 'Next →';
 
-  // On the intro step, reset min-height so we can measure the natural height;
-  // then lock it in so later shorter messages don't cause a layout jump.
-  if (step.kind === 'intro') {
-    msgEl.style.minHeight = '';
-  }
   msgEl.innerHTML = step.message;
-  if (step.kind === 'intro') {
-    requestAnimationFrame(() => {
-      msgEl.style.minHeight = msgEl.offsetHeight + 'px';
-    });
-  }
 
   renderSeats(step.history || []);
   // Only re-sort boxes on resort (and intro) steps; preserve order during increment step
