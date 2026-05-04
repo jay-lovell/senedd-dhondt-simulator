@@ -923,6 +923,19 @@ html, body {
   opacity: 0.6;
 }
 
+.footer-kofi {
+  font-size: 9px;
+  color: #ff5e5b;
+  text-decoration: none;
+  opacity: 0.7;
+  white-space: nowrap;
+}
+.footer-kofi:hover,
+.footer-kofi:focus-visible {
+  opacity: 1;
+  color: #ff8a88;
+}
+
 .footer-feedback {
   font-size: 9px;
   color: var(--muted);
