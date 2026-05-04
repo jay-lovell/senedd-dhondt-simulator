@@ -9,11 +9,12 @@ const PARTIES = [
   { name: 'Green',             abbr: 'GRN', color: '#00B140', text: '#fff' },
   { name: 'Independents',      abbr: 'IND', color: '#6B7280', text: '#fff' },
   { name: 'Labour',            abbr: 'LAB', color: '#E4003B', text: '#fff' },
-  { name: 'Liberal Democrats', abbr: 'LD',  color: '#FAA61A', text: '#000' },
+  { name: 'Lib Dems',          abbr: 'LD',  color: '#FAA61A', text: '#000' },
   { name: 'Plaid Cymru',       abbr: 'PC',  color: '#005B54', text: '#fff' },
   { name: 'Reform UK',         abbr: 'REF', color: '#12B6CF', text: '#fff' },
 ];
 
+const IND_IDX            = PARTIES.findIndex(p => p.abbr === 'IND');
 const NUM_SEATS          = 6;
 const ELECTORATE_MIN     = 122883;
 const ELECTORATE_MAX     = 152545;
@@ -28,6 +29,7 @@ const state = {
   dhondtSteps:    [],
   stepIndex:      0,
   seatHistory:    [],   // party index for each seat, in order
+  indCandidates:  2,    // max seats Independents can win
 };
 
 // ── Utilities ────────────────────────────────────────────
@@ -57,26 +59,52 @@ function initInputPhase() {
   PARTIES.forEach((party, i) => {
     const card = document.createElement('div');
     card.className = 'party-input-card';
+    const isIND = i === IND_IDX;
     card.innerHTML = `
       <div class="party-input-label">
         <div class="party-dot" style="background:${party.color}"></div>
         <span>${party.name}</span>
       </div>
-      <div class="party-pct-display" id="pct-val-${i}" aria-live="polite">0%</div>
+      <div class="pct-input-wrapper">
+        <input type="number" class="party-number-input"
+               id="pct-num-${i}" data-idx="${i}"
+               min="0" max="100" step="1" value="0"
+               aria-label="${party.name} vote percentage">
+        <span class="pct-suffix">%</span>
+      </div>
       <input type="range" class="party-slider"
              id="pct-slider-${i}" data-idx="${i}"
              min="0" max="100" step="1" value="0"
              style="accent-color:${party.color}"
-             aria-label="${party.name} vote percentage">
+             aria-label="${party.name} vote percentage slider">
+      ${isIND ? `
+      <div class="ind-cand-row">
+        <label class="ind-cand-label" for="ind-candidates">Candidates:</label>
+        <input type="number" id="ind-candidates" class="ind-cand-input"
+               min="0" max="${NUM_SEATS}" step="1" value="${state.indCandidates}"
+               aria-label="Number of independent candidates standing">
+      </div>` : ''}
     `;
     grid.appendChild(card);
   });
 
   grid.addEventListener('input', e => {
-    if (!e.target.classList.contains('party-slider')) return;
+    if (e.target.id === 'ind-candidates') {
+      state.indCandidates = Math.max(0, Math.min(NUM_SEATS,
+        Number.parseInt(e.target.value, 10) || 0));
+      return;
+    }
+    const isSlider = e.target.classList.contains('party-slider');
+    const isNumber = e.target.classList.contains('party-number-input');
+    if (!isSlider && !isNumber) return;
     const i = +e.target.dataset.idx;
-    state.percentages[i] = +e.target.value;
-    document.getElementById(`pct-val-${i}`).textContent = `${state.percentages[i]}%`;
+    const otherSum = state.percentages.reduce((a, b, j) => j === i ? a : a + b, 0);
+    const maxAllowed = 100 - otherSum;
+    const rawVal = +e.target.value;
+    const newVal = Math.max(0, Math.min(isNaN(rawVal) ? 0 : rawVal, maxAllowed));
+    state.percentages[i] = newVal;
+    document.getElementById(`pct-slider-${i}`).value = newVal;
+    document.getElementById(`pct-num-${i}`).value = newVal;
     updateTotal();
   });
 
@@ -115,11 +143,14 @@ function resetInputs() {
   state.percentages = Array(PARTIES.length).fill(0);
   PARTIES.forEach((_, i) => {
     document.getElementById(`pct-slider-${i}`).value = 0;
-    document.getElementById(`pct-val-${i}`).textContent = '0%';
+    document.getElementById(`pct-num-${i}`).value = 0;
   });
   document.getElementById('turnout-slider').value = 60;
   document.getElementById('turnout-display').textContent = '60%';
   state.turnout = 60;
+  state.indCandidates = 2;
+  const indCandEl = document.getElementById('ind-candidates');
+  if (indCandEl) indCandEl.value = 2;
   clearInputError();
   updateTotal();
 }
@@ -146,12 +177,14 @@ function clearInputError() {
 function confirmInputs() {
   const total = state.percentages.reduce((a, b) => a + b, 0);
   if (total === 0) {
-    showInputError('Please enter vote percentages for at least one party before confirming.');
+    showInputError('Enter vote percentages for at least one party.');
     return;
   }
   clearInputError();
-  state.electorate = rand(ELECTORATE_MIN, ELECTORATE_MAX);
-  state.turnout    = +document.getElementById('turnout-slider').value;
+  state.electorate    = rand(ELECTORATE_MIN, ELECTORATE_MAX);
+  state.turnout       = +document.getElementById('turnout-slider').value;
+  state.indCandidates = Math.max(0, Math.min(NUM_SEATS,
+    Number.parseInt(document.getElementById('ind-candidates')?.value ?? '2', 10) || 0));
   state.totalVotes = Math.round(state.electorate * (state.turnout / 100));
   state.partyVotes = state.percentages.map(pct =>
     Math.round(state.totalVotes * (pct / 100))
@@ -244,7 +277,7 @@ async function initBallotPhase() {
   document.getElementById('btn-sort-boxes').onclick = async () => {
     document.getElementById('btn-sort-boxes').style.display = 'none';
     await sortBallotBoxes();
-    heading.textContent = 'Votes sorted — ready for seat allocation!';
+    heading.textContent = 'Votes sorted — ready to allocate seats!';
     await sleep(400);
     const dhondtBtn = document.getElementById('btn-to-dhondt');
     dhondtBtn.style.display = 'inline-block';
@@ -400,11 +433,14 @@ function computeDhondtSteps() {
   const seatsWon = Array(PARTIES.length).fill(0);
   const history  = [];
 
-  // Helper: find index of party with highest adjusted votes
+  // Helper: find index of eligible party with highest adjusted votes
   function leader(divs) {
-    let best = 0;
-    for (let i = 1; i < PARTIES.length; i++) {
-      if (state.partyVotes[i] / divs[i] > state.partyVotes[best] / divs[best]) {
+    const partyMaxSeats = PARTIES.map((_, i) => i === IND_IDX ? state.indCandidates : NUM_SEATS);
+    let best = -1;
+    for (let i = 0; i < PARTIES.length; i++) {
+      if (state.partyVotes[i] === 0) continue;
+      if (seatsWon[i] >= partyMaxSeats[i]) continue;
+      if (best === -1 || state.partyVotes[i] / divs[i] > state.partyVotes[best] / divs[best]) {
         best = i;
       }
     }
@@ -418,19 +454,20 @@ function computeDhondtSteps() {
     adjusted:    state.partyVotes.map((v, i) => Math.round(v / divisors[i])),
     seatsWon:    [...seatsWon],
     history:     [],
-    message:     "The <strong>D'Hondt method</strong> allocates seats by repeatedly dividing each party's votes by a divisor. Every party's divisor starts at <strong>1</strong>, which leaves their vote totals unchanged. The party with the highest total at each stage receives the next seat.",
+    message:     "In the <strong>D'Hondt method</strong>, each party's votes are divided by a divisor — starting at <strong>1</strong>. The party with the highest adjusted total wins the next seat. When a party wins a seat, their divisor increases by 1, reducing their adjusted total for future rounds.",
     btnText:     'Allocate Seat 1 →',
     highlight:   -1,
   });
 
   for (let seat = 1; seat <= NUM_SEATS; seat++) {
-    const win       = leader(divisors);
+    const win = leader(divisors);
+    if (win === -1) break;  // no eligible parties remain
     const prevWin   = history.length ? history[history.length - 1] : -1;
     const adjVotes  = state.partyVotes.map((v, i) => Math.round(v / divisors[i]));
 
     let leadMsg;
     if (seat === 1) {
-      leadMsg = `<strong>${PARTIES[win].name}</strong> has the highest vote total (${fmt(adjVotes[win])}) — they receive <strong>Seat ${seat}</strong>! 🎉`;
+      leadMsg = `<strong>${PARTIES[win].name}</strong> has the highest adjusted total (${fmt(adjVotes[win])}) — they receive <strong>Seat ${seat}</strong>! 🎉`;
     } else if (win === prevWin) {
       leadMsg = `<strong>${PARTIES[win].name}</strong> is <em>still</em> in the lead with an adjusted total of <strong>${fmt(adjVotes[win])}</strong> — they receive <strong>Seat ${seat}</strong>! 🎉`;
     } else {
@@ -630,16 +667,24 @@ function renderDhondtBoxes(divisors, adjusted, history, highlightIdx) {
     box.setAttribute('role', 'listitem');
     box.setAttribute('aria-label', `${party.name}: ${fmt(adjusted[pi])} adjusted votes, divisor ${divisors[pi]}`);
 
+    const isCapped = pi === IND_IDX && seatsWon >= state.indCandidates;
     if (pi === highlightIdx) box.classList.add('highlight');
+    if (isCapped) box.classList.add('dim');
+
+    const seatWord = state.indCandidates === 1 ? 'seat' : 'seats';
+    const capBadge = (pi === IND_IDX && state.indCandidates < NUM_SEATS)
+      ? `<div class="bbox-cap">Cap: ${state.indCandidates} ${seatWord}</div>`
+      : '';
 
     box.innerHTML = `
       <div class="bbox-rank">#${rank + 1}</div>
       <div class="bbox-logo" style="background:${party.color};color:${party.text}">${party.abbr}</div>
       <div class="bbox-name">${party.name}</div>
+      ${capBadge}
       <div class="bbox-votes">${fmt(state.partyVotes[pi])}</div>
       <div class="bbox-div-label">÷ divisor</div>
       <div class="bbox-divisor" id="div-label-${pi}">${divisors[pi]}</div>
-      <div class="bbox-div-label">= adjusted</div>
+      <div class="bbox-div-label">= effective</div>
       <div class="bbox-adjusted">${fmt(adjusted[pi])}</div>
       ${seatsWon > 0 ? `<div class="bbox-seats-icons">${'🟡'.repeat(seatsWon)}</div>` : ''}
     `;
@@ -695,10 +740,19 @@ function showComplete() {
   const counts = Array(PARTIES.length).fill(0);
   history.forEach(pi => counts[pi]++);
 
+  const totalVotesCast = state.partyVotes.reduce((a, b) => a + b, 0) || 1;
   const summaryEl = document.getElementById('final-summary');
   summaryEl.innerHTML = '';
-  PARTIES.forEach((p, i) => {
-    if (counts[i] === 0) return;
+
+  // Sort by seats descending, then votes descending
+  const sortedIndices = PARTIES.map((_, i) => i)
+    .filter(i => counts[i] > 0)
+    .sort((a, b) => counts[b] - counts[a] || state.partyVotes[b] - state.partyVotes[a]);
+
+  sortedIndices.forEach(i => {
+    const p = PARTIES[i];
+    const votePct = (state.partyVotes[i] / totalVotesCast * 100).toFixed(1);
+    const seatPct = (counts[i] / NUM_SEATS * 100).toFixed(1);
     const card = document.createElement('div');
     card.className = 'summary-card';
     card.setAttribute('role', 'listitem');
@@ -707,6 +761,18 @@ function showComplete() {
       <div class="summary-seats" style="color:${p.color}">${counts[i]}</div>
       <div class="summary-name">${p.name}</div>
       <div class="summary-votes">${fmt(state.partyVotes[i])} votes</div>
+      <div class="summary-comparison">
+        <div class="cmp-row">
+          <span class="cmp-label">Votes</span>
+          <span class="cmp-bar-wrap"><span class="cmp-bar" style="width:${votePct}%;background:${p.color};opacity:0.55"></span></span>
+          <span class="cmp-pct">${votePct}%</span>
+        </div>
+        <div class="cmp-row">
+          <span class="cmp-label">Seats</span>
+          <span class="cmp-bar-wrap"><span class="cmp-bar" style="width:${seatPct}%;background:${p.color}"></span></span>
+          <span class="cmp-pct">${seatPct}%</span>
+        </div>
+      </div>
     `;
     summaryEl.appendChild(card);
   });
