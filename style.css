@@ -874,23 +874,19 @@ html, body {
   bottom: 0; left: 0; right: 0;
   z-index: 100;
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
-  gap: 6px 16px;
-  padding: 6px 12px;
+  justify-content: space-between;
+  padding: 4px 10px;
   background: rgba(7, 15, 25, 0.88);
   border-top: 1px solid var(--border);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  text-align: center;
 }
 
-.footer-copyright,
-.footer-disclaimer {
-  font-size: 10px;
+.footer-name {
+  font-size: 9px;
   color: var(--muted);
-  line-height: 1.4;
+  opacity: 0.6;
 }
 
 .footer-feedback {
