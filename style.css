@@ -559,6 +559,10 @@ html, body {
   border-radius: var(--radius);
   padding: 8px 12px;
 }
+.dhondt-bottom .btn {
+  min-width: 140px;
+  text-align: center;
+}
 .dhondt-message-box { flex: 1; }
 .dhondt-message {
   font-size: 13px; line-height: 1.5; color: var(--text);
@@ -890,11 +894,18 @@ html, body {
 }
 
 .footer-feedback {
-  font-size: 10px;
-  padding: 4px 10px;
+  font-size: 8px;
+  padding: 2px 7px;
   min-height: auto;
   text-decoration: none;
   white-space: nowrap;
+  font-weight: 500;
+  opacity: 0.6;
+  border-width: 1px;
+}
+.footer-feedback:hover,
+.footer-feedback:focus-visible {
+  opacity: 1;
 }
 
 /* ── Landscape tablet / desktop (1024px+ wide, 600px+ tall) ─ */
