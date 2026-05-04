@@ -2,20 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0d1b2a">
   <title>Senedd D'Hondt Simulator – Pontypandy</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-  <!-- Rotate prompt for portrait -->
-  <div id="rotate-prompt" class="rotate-prompt" aria-live="polite">
-    <div class="rotate-inner">
-      <span class="rotate-icon">🔄</span>
-      <p>Please rotate your device to <strong>landscape</strong> mode to use this simulator.</p>
-    </div>
-  </div>
 
   <div id="app">
 
@@ -68,21 +60,21 @@
       </div>
 
       <div class="input-overlay">
-        <div class="input-panel" role="form" aria-labelledby="panel-title">
+        <form class="input-panel" aria-labelledby="panel-title" onsubmit="return false">
 
           <div class="panel-header">
             <span class="flag" aria-hidden="true">🏴󠁧󠁢󠁷󠁬󠁳󠁿</span>
             <div>
-              <h1 id="panel-title">Pontypandy</h1>
+              <h1 id="panel-title">Fictional Constituency of Pontypandy</h1>
               <p class="subtitle">Senedd Election Simulator</p>
             </div>
           </div>
 
           <div class="panel-body">
-            <p class="instructions">Enter each party's expected vote share (%), then set turnout.</p>
-            <div class="party-inputs-grid" id="party-inputs" role="group" aria-label="Party vote percentages">
+            <p class="instructions">Enter each party's vote share (%) and set the turnout. For Independents, also set the number of candidates standing — this caps how many seats they can win.</p>
+            <fieldset class="party-inputs-grid" id="party-inputs" aria-label="Party vote percentages">
               <!-- Rendered by JS -->
-            </div>
+            </fieldset>
             <div class="turnout-row">
               <label class="turnout-label" for="turnout-slider">Turnout:</label>
               <input type="range" id="turnout-slider" min="1" max="100" value="60" class="turnout-slider" aria-label="Voter turnout percentage">
@@ -98,7 +90,7 @@
             <button class="btn btn-primary"   id="btn-confirm">✓ Confirm Votes</button>
           </div>
 
-        </div>
+        </form>
       </div>
     </section>
 
@@ -108,11 +100,12 @@
         <h2>📊 Vote Calculation – Pontypandy</h2>
         <div class="calc-scroll">
           <table id="calc-table" class="calc-table" aria-label="Calculated vote figures">
+            <thead class="sr-only"><tr><th scope="col">Description</th><th scope="col">Value</th></tr></thead>
             <tbody id="calc-tbody"></tbody>
           </table>
         </div>
         <div class="calc-footer">
-          <button class="btn btn-primary" id="btn-to-ballot" style="display:none">Proceed to Ballot Boxes →</button>
+          <button class="btn btn-primary" id="btn-to-ballot" disabled>Continue to Ballot Count →</button>
         </div>
       </div>
     </section>
@@ -122,10 +115,10 @@
       <div class="ballot-wrapper">
         <h2 id="ballot-heading" aria-live="polite">Counting the votes…</h2>
         <div id="particle-layer" aria-hidden="true"></div>
-        <div id="ballot-boxes-row" class="ballot-boxes-row" role="list" aria-label="Party ballot boxes"></div>
+        <ul id="ballot-boxes-row" class="ballot-boxes-row" aria-label="Party ballot boxes"></ul>
         <div class="ballot-footer">
-          <button class="btn btn-primary" id="btn-sort-boxes"  style="display:none">Sort by Votes →</button>
-          <button class="btn btn-primary" id="btn-to-dhondt"   style="display:none">Begin D'Hondt →</button>
+          <button class="btn btn-primary" id="btn-sort-boxes"  disabled>Sort by Votes →</button>
+          <button class="btn btn-primary" id="btn-to-dhondt"   disabled>Begin D'Hondt →</button>
         </div>
       </div>
     </section>
@@ -137,10 +130,10 @@
         <div class="dhondt-top">
           <div class="seats-section">
             <div class="seats-label">Pontypandy – 6 Seats</div>
-            <div id="seats-row" class="seats-row" role="list" aria-label="Allocated seats"></div>
+            <ul id="seats-row" class="seats-row" aria-label="Allocated seats"></ul>
           </div>
           <div class="dhondt-boxes-section">
-            <div id="dhondt-boxes-row" class="dhondt-boxes-row" role="list" aria-label="Party standings"></div>
+            <ul id="dhondt-boxes-row" class="dhondt-boxes-row" aria-label="Party standings"></ul>
           </div>
         </div>
 
@@ -162,13 +155,19 @@
           <h2>Election Complete!</h2>
           <p>All six seats have been allocated in <strong>Pontypandy</strong>.</p>
         </div>
-        <div id="final-seats"   class="final-seats-row" role="list" aria-label="Elected seats"></div>
-        <div id="final-summary" class="final-summary"   role="list" aria-label="Party seat totals"></div>
+        <ul id="final-seats"   class="final-seats-row" aria-label="Elected seats"></ul>
+        <ul id="final-summary" class="final-summary"   aria-label="Party seat totals"></ul>
         <button class="btn btn-primary" id="btn-restart">↺ Start Again</button>
       </div>
     </section>
 
   </div><!-- #app -->
+
+  <footer class="site-footer" role="contentinfo">
+    <p class="footer-copyright">&copy; 2026 Jay Lovell. All rights reserved.</p>
+    <p class="footer-disclaimer">This simulator is fictional and is not affiliated with, endorsed by, or associated with any political party, candidate, or electoral body.</p>
+    <a class="footer-feedback btn btn-secondary" href="mailto:mail@jaylovell.co.uk?subject=Senedd%20D%27Hondt%20Simulator%20Feedback">✉ Send Feedback</a>
+  </footer>
 
   <script src="script.js"></script>
 </body>

@@ -17,15 +17,8 @@
   --primary:     #005b54;
   --primary-h:   #00796e;
   --danger:      #e04040;
-
-  /* Party colours */
-  --con: #0087DC;
-  --grn: #00B140;
-  --ind: #6B7280;
-  --lab: #E4003B;
-  --lib: #FAA61A;
-  --pc:  #005B54;
-  --ref: #12B6CF;
+  --effective:   #60d0f0;   /* adjusted / effective vote count */
+  --divisor:     #f0882c;   /* divisor values */
 
   --radius:  8px;
   --shadow:  0 4px 20px rgba(0,0,0,0.5);
@@ -42,33 +35,18 @@ html, body {
   touch-action: manipulation;
 }
 
-/* ── Orientation guard ──────────────────────────────────── */
-.rotate-prompt {
-  display: none;
-  position: fixed; inset: 0;
-  background: #000;
-  z-index: 9999;
-  align-items: center; justify-content: center;
-  text-align: center;
-}
-.rotate-inner { padding: 24px; }
-.rotate-icon  { font-size: 48px; display: block; margin-bottom: 16px; }
-.rotate-inner p { font-size: 16px; color: #ddd; line-height: 1.5; }
-
-@media (orientation: portrait) {
-  .rotate-prompt { display: flex; }
-  #app           { display: none;  }
-}
+/* Portrait orientation is fully supported — no rotation required */
 
 /* ── App shell ──────────────────────────────────────────── */
 #app {
   position: relative;
-  width: 100%; height: 100vh;
+  width: 100%; height: 100vh; height: 100dvh;
 }
 
 /* ── Phases ─────────────────────────────────────────────── */
 .phase {
   position: absolute; inset: 0;
+  padding-bottom: 56px; /* clear the fixed site-footer */
   display: flex; flex-direction: column;
   opacity: 0; pointer-events: none;
   transition: opacity var(--trans);
@@ -107,11 +85,15 @@ html, body {
 .btn-secondary:focus-visible {
   background: rgba(255,255,255,0.18);
 }
+.btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  pointer-events: none;
+}
 
 /* ════════════════════════════════════════════════════════════
    PHASE 1 – INPUT
    ════════════════════════════════════════════════════════════ */
-#phase-input { position: relative; }
 
 .map-bg {
   position: absolute; inset: 0; overflow: hidden;
@@ -124,7 +106,7 @@ html, body {
   position: relative; z-index: 10;
   display: flex;
   align-items: center; justify-content: center;
-  height: 100%; padding: 6px;
+  flex: 1; padding: 6px;
 }
 
 .input-panel {
@@ -135,10 +117,11 @@ html, body {
   -webkit-backdrop-filter: blur(12px);
   width: 100%; max-width: 740px;
   /* Never taller than the viewport */
-  max-height: 92vh;
+  max-height: 92vh; max-height: 92dvh;
   display: flex; flex-direction: column;
   padding: 8px 12px;
   box-shadow: var(--shadow);
+  overflow-y: auto;
 }
 
 .panel-header {
@@ -166,6 +149,8 @@ html, body {
   grid-template-columns: repeat(4, 1fr);
   gap: 5px;
   margin-bottom: 6px;
+  border: none; padding: 0;  /* reset fieldset defaults */
+  min-width: 0;
 }
 @media (max-width: 600px) {
   .party-inputs-grid { grid-template-columns: repeat(2, 1fr); }
@@ -186,10 +171,31 @@ html, body {
   width: 9px; height: 9px;
   border-radius: 50%; flex-shrink: 0;
 }
-.party-pct-display {
+.pct-input-wrapper {
+  display: flex; align-items: baseline; justify-content: center; gap: 2px;
+}
+.party-number-input {
   font-size: 16px; font-weight: 800;
-  color: var(--gold); text-align: center;
+  color: var(--gold); text-align: right;
   line-height: 1;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,215,0,0.3);
+  width: 40px;
+  padding: 1px 0;
+  outline: none;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.party-number-input::-webkit-inner-spin-button,
+.party-number-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.party-number-input:focus {
+  border-bottom-color: var(--gold);
+  background: rgba(255,215,0,0.08);
+  border-radius: 2px 2px 0 0;
+}
+.pct-suffix {
+  font-size: 12px; color: var(--gold); font-weight: 700; line-height: 1;
 }
 .party-slider {
   width: 100%;
@@ -242,6 +248,31 @@ html, body {
   flex-shrink: 0;
 }
 
+/* Independents candidate count row (within party card) */
+.ind-cand-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 4px; padding-top: 4px;
+  border-top: 1px solid rgba(107, 114, 128, 0.3);
+}
+.ind-cand-label {
+  font-size: 9px; color: var(--muted); white-space: nowrap;
+}
+.ind-cand-input {
+  font-size: 13px; font-weight: 700; color: var(--ind);
+  background: transparent; border: none;
+  border-bottom: 1px solid rgba(107, 114, 128, 0.4);
+  width: 28px; text-align: center; outline: none;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.ind-cand-input::-webkit-inner-spin-button,
+.ind-cand-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.ind-cand-input:focus {
+  border-bottom-color: var(--ind);
+  background: rgba(107, 114, 128, 0.12);
+  border-radius: 2px 2px 0 0;
+}
+
 /* ════════════════════════════════════════════════════════════
    PHASE 2 – CALCULATION
    ════════════════════════════════════════════════════════════ */
@@ -254,7 +285,7 @@ html, body {
   padding: 10px 16px;
   display: flex; flex-direction: column;
   /* Fill but never overflow the viewport */
-  max-height: 100vh; overflow: hidden;
+  max-height: 100vh; max-height: 100dvh; overflow: hidden;
 }
 .calc-wrapper h2 {
   font-size: 16px; color: var(--gold);
@@ -297,12 +328,20 @@ html, body {
 .ballot-wrapper h2 {
   font-size: 15px; color: var(--gold);
   text-align: center; margin-bottom: 4px; flex-shrink: 0;
+  min-height: 2.6em; /* reserve space for the tallest heading text */
 }
 
 /* Particle layer – covers entire screen */
 #particle-layer {
   position: fixed; inset: 0;
   pointer-events: none; overflow: hidden; z-index: 5;
+}
+
+/* Screen-reader-only utility */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); white-space: nowrap; border: 0;
 }
 
 /* Ballot boxes row */
@@ -312,50 +351,91 @@ html, body {
   flex: 1; overflow-x: auto;
   padding: 4px 2px;
   position: relative; z-index: 6;
+  list-style: none;
 }
 
 /* Shared ballot-box styles (used in phase 3 and phase 4) */
 .ballot-box {
-  flex: 0 0 auto;
+  flex: 0 0 88px;
   width: 88px;
-  background: rgba(255,255,255,0.07);
-  border: 2px solid rgba(255,255,255,0.18);
-  border-radius: var(--radius);
-  padding: 8px 4px 6px;
+  height: 132px;            /* fixed — never grows or shrinks */
+  background: rgba(15, 28, 44, 0.95);
+  border: 2px solid rgba(255,255,255,0.15);
+  border-radius: 4px 4px 6px 6px;
+  padding: 0;
   display: flex; flex-direction: column;
-  align-items: center; gap: 3px;
-  transition: order 0.6s, box-shadow 0.4s, border-color 0.4s;
+  align-items: stretch; overflow: hidden;
   position: relative;
-  min-height: 130px;
+  transition: box-shadow 0.4s, border-color 0.4s;
 }
 .ballot-box.highlight {
   border-color: var(--gold);
   box-shadow: 0 0 16px rgba(255,215,0,0.5);
+  animation: box-pulse 1.4s ease infinite;
 }
 .ballot-box.dim { opacity: 0.45; }
 
-.bbox-logo {
-  width: 38px; height: 38px;
-  border-radius: 50%;
+/* Lid with paper slot */
+.bbox-lid {
+  width: 100%; height: 30px;
+  flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 900;
-  flex-shrink: 0; letter-spacing: -0.5px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  border-bottom: 2px solid rgba(0,0,0,0.4);
+}
+.bbox-slot {
+  width: 36px; height: 5px;
+  background: rgba(0,0,0,0.85);
+  border-radius: 1px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,1);
+  margin-top: 4px;
+}
+
+/* Box body */
+.bbox-body {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 5px 4px; gap: 3px;
+  overflow: hidden;
+}
+.bbox-abbr {
+  font-size: 15px; font-weight: 900;
+  line-height: 1; letter-spacing: 0.5px;
 }
 .bbox-name {
-  font-size: 9px; font-weight: 600;
-  text-align: center; color: var(--text); line-height: 1.25;
+  font-size: 8px; font-weight: 600;
+  text-align: center; color: var(--muted); line-height: 1.25;
 }
 .bbox-votes {
-  font-size: 12px; font-weight: 800;
+  font-size: 11px; font-weight: 800;
   color: var(--gold); text-align: center; line-height: 1;
 }
 .bbox-rank {
-  position: absolute; top: 3px; right: 5px;
-  font-size: 9px; color: var(--muted);
+  position: absolute; top: 5px; left: 5px;
+  background: rgba(0,0,0,0.65);
+  color: #fff;
+  font-size: 10px; font-weight: 900;
+  border-radius: 3px;
+  padding: 1px 5px;
+  border: 1px solid rgba(255,255,255,0.3);
+  z-index: 2;
+  line-height: 1.4;
 }
 .bbox-seats-icons {
-  font-size: 9px; letter-spacing: 1px; line-height: 1;
+  display: flex; gap: 2px; flex-wrap: wrap;
+  justify-content: center;
+}
+.bbox-seat-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  flex-shrink: 0;
+}
+.bbox-seat-dot.bbox-seat-won {
+  background: #ffd700;
+  border-color: #ffd700;
+  box-shadow: 0 0 4px rgba(255,215,0,0.6);
 }
 
 .ballot-footer {
@@ -385,6 +465,7 @@ html, body {
 }
 .seats-row {
   display: flex; gap: 6px; justify-content: center;
+  list-style: none;
 }
 .seat {
   width: 46px; height: 46px;
@@ -417,25 +498,58 @@ html, body {
   height: 100%;
   overflow-x: auto;
   padding: 2px 2px 4px;
+  list-style: none;
 }
 
-/* Smaller variant of ballot box for d'hondt phase */
+/* D'Hondt phase — fixed-height variant with more data */
 .dhondt-boxes-row .ballot-box {
-  width: 82px; min-height: 115px; padding: 6px 3px 5px;
+  width: 82px; height: 164px; flex: 0 0 82px;
 }
-.dhondt-boxes-row .bbox-logo {
-  width: 32px; height: 32px; font-size: 10px;
+.dhondt-boxes-row .bbox-lid  { height: 26px; }
+.dhondt-boxes-row .bbox-slot { width: 30px; height: 4px; }
+.dhondt-boxes-row .bbox-body { padding: 4px 3px; gap: 2px; }
+.dhondt-boxes-row .bbox-abbr { font-size: 13px; }
+.dhondt-boxes-row .bbox-name { font-size: 7px; }
+.dhondt-boxes-row .bbox-votes { font-size: 10px; }
+
+/* Separate data rows: votes / divisor / effective */
+.bbox-divrow, .bbox-adjrow {
+  display: flex; align-items: baseline;
+  justify-content: center; gap: 3px;
+  line-height: 1;
 }
-.dhondt-boxes-row .bbox-name    { font-size: 8px; }
-.dhondt-boxes-row .bbox-votes   { font-size: 11px; }
-.bbox-divisor   {
-  font-size: 13px; font-weight: 800;
-  color: var(--gold); text-align: center; line-height: 1;
+.bbox-divisor {
+  font-size: 12px; font-weight: 800;
+  color: var(--divisor); line-height: 1;
 }
-.bbox-adjusted  {
-  font-size: 10px; color: var(--muted); text-align: center; line-height: 1;
+.bbox-adjusted {
+  font-size: 11px; font-weight: 800;
+  color: var(--effective); line-height: 1;
 }
-.bbox-div-label { font-size: 8px; color: var(--muted); text-align: center; }
+.bbox-div-label { font-size: 9px; color: var(--muted); }
+
+/* 'No more candidates' stamp overlay */
+.bbox-stamp {
+  position: absolute;
+  inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 4;
+  pointer-events: none;
+  background: rgba(0,0,0,0.25);
+}
+.bbox-stamp-inner {
+  transform: rotate(-22deg);
+  border: 2px solid #e04040;
+  border-radius: 4px;
+  padding: 3px 5px;
+  color: #e04040;
+  font-size: 7px; font-weight: 900;
+  text-align: center; line-height: 1.35;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  background: rgba(10, 5, 5, 0.6);
+  white-space: nowrap;
+}
 
 /* Bottom: message + button */
 .dhondt-bottom {
@@ -450,6 +564,7 @@ html, body {
   font-size: 13px; line-height: 1.5; color: var(--text);
 }
 .dhondt-message strong { color: var(--gold); }
+.dhondt-message .dv    { color: var(--divisor); font-weight: 700; }
 
 /* ════════════════════════════════════════════════════════════
    PHASE 5 – COMPLETE
@@ -471,6 +586,7 @@ html, body {
   display: flex; gap: 8px;
   justify-content: center; flex-wrap: wrap;
   margin: 12px 0;
+  list-style: none;
 }
 .final-seat {
   width: 78px; height: 78px;
@@ -488,6 +604,7 @@ html, body {
   display: flex; gap: 8px;
   justify-content: center; flex-wrap: wrap;
   margin-bottom: 16px;
+  list-style: none;
 }
 .summary-card {
   background: rgba(255,255,255,0.07);
@@ -495,12 +612,36 @@ html, body {
   padding: 8px 12px;
   display: flex; flex-direction: column;
   align-items: center; gap: 3px;
-  min-width: 100px;
+  min-width: 130px;
   border-left: 4px solid transparent;
 }
 .summary-seats { font-size: 26px; font-weight: 900; }
 .summary-name  { font-size: 10px; color: var(--muted); text-align: center; }
 .summary-votes { font-size: 9px;  color: #666; }
+
+.summary-comparison {
+  width: 100%; margin-top: 5px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.cmp-row {
+  display: flex; align-items: center; gap: 4px;
+}
+.cmp-label {
+  color: var(--muted); width: 46px; flex-shrink: 0; font-size: 8px;
+}
+.cmp-bar-wrap {
+  flex: 1; height: 5px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 3px; overflow: hidden;
+}
+.cmp-bar {
+  display: block; height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+.cmp-pct {
+  color: var(--text); min-width: 30px; text-align: right; font-size: 8px;
+}
 
 /* ════════════════════════════════════════════════════════════
    ANIMATIONS
@@ -544,7 +685,6 @@ html, body {
   0%, 100% { box-shadow: 0 0 16px rgba(255,215,0,0.5); }
   50%       { box-shadow: 0 0 28px rgba(255,215,0,0.9); }
 }
-.ballot-box.highlight { animation: box-pulse 1.4s ease infinite; }
 
 /* Scrollbar styling */
 ::-webkit-scrollbar       { width: 4px; height: 4px; }
@@ -552,3 +692,235 @@ html, body {
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
 /* Firefox */
 * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent; }
+
+/* ════════════════════════════════════════════════════════════
+   RESPONSIVE – MOBILE & TABLET
+   Targets: iPhone 15/16/17 (390–393px), Pixel 7 (412px),
+            Pixel 8 (393px), iPad (768px+)
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Ensure 44px minimum touch targets on all mobile ────── */
+@media (max-width: 1024px) {
+  .btn { min-height: 44px; }
+}
+
+/* ── Portrait phones: iPhone 15/16/17 (390–393px),
+       Pixel 7 (412px), Pixel 8 (393px)
+   ──────────────────────────────────────────────────────── */
+@media (orientation: portrait) and (max-width: 500px) {
+
+  /* Phase 1 – allow overlay to scroll if content exceeds viewport */
+  .input-overlay {
+    align-items: flex-start;
+    overflow-y: auto;
+    padding: 10px 8px;
+  }
+  .input-panel { max-height: none; }
+
+  /* Party grid – 2 columns with comfortable spacing */
+  .party-inputs-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .party-input-card   { padding: 8px 10px; gap: 5px; }
+  .party-input-label  { font-size: 11px; }
+  .party-number-input { font-size: 18px; width: 44px; }
+  .pct-suffix         { font-size: 13px; }
+  .turnout-row        { padding: 7px 12px; }
+  .turnout-value      { font-size: 18px; min-width: 44px; }
+  .btn                { padding: 12px 18px; font-size: 14px; }
+
+  /* Phase 3 – wrap ballot boxes into a multi-row grid */
+  .ballot-boxes-row {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: center;
+    overflow-x: hidden;
+    overflow-y: auto;
+    gap: 8px;
+  }
+  .ballot-box { width: 98px; height: 132px; flex: 0 0 98px; }
+
+  /* Phase 4 – wrap d'hondt boxes, allow section to scroll */
+  .dhondt-top             { overflow: visible; }
+  .dhondt-boxes-section   { overflow-x: hidden; overflow-y: auto; }
+  .dhondt-boxes-row {
+    flex-wrap: wrap;
+    height: auto;
+    align-items: flex-start;
+    justify-content: center;
+    overflow-x: hidden;
+    gap: 6px;
+  }
+  .dhondt-boxes-row .ballot-box { width: 84px; height: 164px; flex: 0 0 84px; }
+  .seats-row    { flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .seat         { width: 46px; height: 46px; }
+  .dhondt-message { font-size: 12px; line-height: 1.4; }
+}
+
+/* ── Wider portrait phones (Pixel 7 at 412px) ────────────── */
+@media (orientation: portrait) and (min-width: 400px) and (max-width: 500px) {
+  .ballot-box                   { width: 106px; flex: 0 0 106px; }
+  .dhondt-boxes-row .ballot-box { width: 90px;  flex: 0 0 90px; }
+}
+
+/* ── Squashed landscape phones
+       Pixel 8 landscape: 851×393  |  iPhone 15/16 landscape: 844×390
+   ──────────────────────────────────────────────────────── */
+@media (orientation: landscape) and (max-height: 480px) {
+
+  /* Phase 1 – compact everything to ease the squashed feeling */
+  .input-panel {
+    padding: 5px 10px;
+    overflow-y: auto;
+    max-height: 96dvh;
+  }
+  .panel-header          { padding-bottom: 3px; margin-bottom: 4px; gap: 6px; }
+  .panel-header h1       { font-size: 15px; }
+  .panel-header .subtitle { font-size: 9px; }
+  .flag                  { font-size: 20px; }
+  .instructions          { font-size: 9px; margin-bottom: 4px; line-height: 1.3; }
+  .party-inputs-grid     { gap: 4px; margin-bottom: 4px; }
+  .party-input-card      { padding: 3px 5px; gap: 1px; }
+  .party-input-label     { font-size: 9px; }
+  .party-number-input    { font-size: 13px; width: 33px; }
+  .party-slider          { height: 3px; }
+  .pct-suffix            { font-size: 10px; }
+  .turnout-row           { padding: 3px 8px; margin-bottom: 3px; }
+  .turnout-label         { font-size: 10px; }
+  .turnout-value         { font-size: 13px; min-width: 32px; }
+  .total-indicator       { font-size: 9px; }
+  .ind-cand-row          { margin-top: 2px; padding-top: 2px; }
+  .ind-cand-label        { font-size: 8px; }
+  .panel-footer          { padding-top: 4px; }
+  .btn                   { padding: 6px 12px; font-size: 11px; min-height: 32px; }
+
+  /* Phase 2 */
+  .calc-wrapper h2  { font-size: 12px; margin-bottom: 5px; }
+  .calc-table       { font-size: 10px; }
+  .calc-table td    { padding: 3px 7px; }
+
+  /* Phase 3 */
+  .ballot-wrapper h2 { font-size: 12px; margin-bottom: 2px; }
+  .ballot-box        { width: 76px; height: 112px; flex: 0 0 76px; }
+  .bbox-lid          { height: 24px; }
+  .bbox-slot         { width: 28px; height: 4px; }
+  .bbox-abbr         { font-size: 13px; }
+  .bbox-name         { font-size: 8px; }
+  .bbox-votes        { font-size: 10px; }
+
+  /* Phase 4 */
+  .dhondt-wrapper              { padding: 4px 6px; gap: 4px; }
+  .dhondt-top                  { gap: 4px; }
+  .seats-label                 { font-size: 9px; margin-bottom: 3px; }
+  .seat                        { width: 36px; height: 36px; border-radius: 6px; }
+  .seat .seat-abbr             { font-size: 10px; }
+  .dhondt-boxes-row .ballot-box { width: 70px; height: 144px; flex: 0 0 70px; }
+  .dhondt-boxes-row .bbox-name  { font-size: 7px; }
+  .dhondt-boxes-row .bbox-votes    { font-size: 10px; }
+  .dhondt-boxes-row .bbox-adjusted { font-size: 10px; }
+  .dhondt-bottom    { padding: 5px 8px; }
+  .dhondt-message   { font-size: 11px; line-height: 1.4; }
+
+  /* Phase 5 */
+  .complete-header h2  { font-size: 20px; }
+  .confetti-emoji      { font-size: 28px; margin-bottom: 3px; }
+  .complete-header p   { font-size: 12px; }
+  .final-seats-row     { margin: 8px 0; gap: 6px; }
+  .final-seat          { width: 62px; height: 62px; }
+  .final-seat .fs-abbr { font-size: 16px; }
+  .summary-card        { min-width: 108px; padding: 6px 8px; }
+  .summary-seats       { font-size: 20px; }
+}
+
+/* ── Portrait tablet (iPad Air / Pro portrait: 768–834px wide)
+   ──────────────────────────────────────────────────────── */
+@media (orientation: portrait) and (min-width: 600px) and (max-width: 1023px) {
+  .input-panel        { max-width: 700px; padding: 14px 20px; }
+  .panel-header h1    { font-size: 24px; }
+  .panel-header .subtitle { font-size: 12px; }
+  .flag               { font-size: 30px; }
+  .party-inputs-grid  { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .party-input-card   { padding: 8px 10px; }
+  .party-number-input { font-size: 19px; width: 46px; }
+  .pct-suffix         { font-size: 14px; }
+  .turnout-value      { font-size: 19px; }
+  .btn                { padding: 12px 22px; font-size: 14px; }
+
+  .ballot-box { width: 106px; height: 148px; flex: 0 0 106px; }
+  .bbox-abbr  { font-size: 17px; }
+  .bbox-name  { font-size: 10px; }
+  .bbox-votes { font-size: 14px; }
+
+  .seat            { width: 58px; height: 58px; }
+  .seat .seat-abbr { font-size: 14px; }
+  .dhondt-boxes-row .ballot-box { width: 98px; height: 177px; flex: 0 0 98px; }
+  .dhondt-message  { font-size: 14px; }
+
+  .final-seat          { width: 90px; height: 90px; }
+  .final-seat .fs-abbr { font-size: 22px; }
+  .summary-card        { min-width: 150px; }
+  .summary-seats       { font-size: 30px; }
+}
+
+/* ── Site footer ───────────────────────────────────────── */
+.site-footer {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 16px;
+  padding: 6px 12px;
+  background: rgba(7, 15, 25, 0.88);
+  border-top: 1px solid var(--border);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  text-align: center;
+}
+
+.footer-copyright,
+.footer-disclaimer {
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.footer-feedback {
+  font-size: 10px;
+  padding: 4px 10px;
+  min-height: auto;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* ── Landscape tablet / desktop (1024px+ wide, 600px+ tall) ─ */
+@media (min-width: 1024px) and (min-height: 600px) {
+  .input-panel        { max-width: 900px; padding: 14px 22px; }
+  .panel-header h1    { font-size: 24px; }
+  .panel-header .subtitle { font-size: 12px; }
+  .flag               { font-size: 30px; }
+  .party-inputs-grid  { gap: 8px; }
+  .party-input-card   { padding: 8px 12px; }
+  .party-number-input { font-size: 19px; width: 46px; }
+  .pct-suffix         { font-size: 14px; }
+  .turnout-value      { font-size: 19px; }
+  .btn                { padding: 11px 22px; font-size: 14px; }
+
+  .ballot-box { width: 108px; height: 150px; flex: 0 0 108px; }
+  .bbox-abbr  { font-size: 17px; }
+  .bbox-name  { font-size: 10px; }
+  .bbox-votes { font-size: 14px; }
+
+  .seat            { width: 58px; height: 58px; }
+  .seat .seat-abbr { font-size: 14px; }
+  .dhondt-boxes-row .ballot-box { width: 100px; height: 180px; flex: 0 0 100px; }
+  .dhondt-message  { font-size: 14px; }
+
+  .final-seat          { width: 90px; height: 90px; }
+  .final-seat .fs-abbr { font-size: 22px; }
+  .summary-seats       { font-size: 30px; }
+}
