@@ -470,7 +470,7 @@ function computeDhondtSteps() {
     seatsWon:    [...seatsWon],
     history:     [],
     stampedParties: [],
-    message:     "In the <strong>D'Hondt method</strong>, each party's votes are divided by a divisor — starting at <span class='dv'>1</span>. The party with the highest adjusted total wins the next seat. When a party wins a seat, their divisor increases by <span class='dv'>1</span>, reducing their adjusted total for future rounds.",
+    message:     "Pontypandy elects 6 Members of the Senedd. Rather than the party with the most votes winning everything, seats are shared proportionally using the <strong>D'Hondt method</strong> — so smaller parties still get a fair share.<br><br>Each round, every party's votes are divided by the number of seats they've already won (plus one). The party with the highest result wins the next seat — and their number goes up, making it a little harder for them to win again straight away.",
     btnText:     'Allocate Seat 1 →',
     highlight:   -1,
   });
@@ -600,10 +600,25 @@ function initDhondtPhase() {
   state.stepIndex   = 0;
   dhondtBoxDisplayOrder = [];  // reset sort order for fresh run
 
+  // Render boxes in initial state behind the overlay
+  const step0 = state.dhondtSteps[0];
   renderSeats([]);
-  applyStep(state.dhondtSteps[0]);
+  renderDhondtBoxes(step0.divisors, step0.adjusted, [], -1, [], true);
+
+  // Show intro overlay
+  const overlay  = document.getElementById('dhondt-intro-overlay');
+  const introTxt = document.getElementById('dhondt-intro-text');
+  introTxt.innerHTML = step0.message;
+  overlay.classList.remove('hidden');
+
+  document.getElementById('btn-dhondt-got-it').onclick = () => {
+    overlay.classList.add('hidden');
+    const msgEl = document.getElementById('dhondt-message');
+    msgEl.innerHTML = 'All parties start with a divisor of <span class="dv">1</span>. Click to allocate the first seat.';
+  };
 
   const btn = document.getElementById('btn-dhondt-next');
+  btn.textContent = step0.btnText || 'Allocate Seat 1 →';
   btn.onclick = advanceDhondt;
 }
 
@@ -653,17 +668,7 @@ function applyStep(step) {
   const btn   = document.getElementById('btn-dhondt-next');
   btn.textContent = step.btnText || 'Next →';
 
-  // On the intro step, reset min-height so we can measure the natural height;
-  // then lock it in so later shorter messages don't cause a layout jump.
-  if (step.kind === 'intro') {
-    msgEl.style.minHeight = '';
-  }
   msgEl.innerHTML = step.message;
-  if (step.kind === 'intro') {
-    requestAnimationFrame(() => {
-      msgEl.style.minHeight = msgEl.offsetHeight + 'px';
-    });
-  }
 
   renderSeats(step.history || []);
   // Only re-sort boxes on resort (and intro) steps; preserve order during increment step

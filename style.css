@@ -46,7 +46,7 @@ html, body {
 /* ── Phases ─────────────────────────────────────────────── */
 .phase {
   position: absolute; inset: 0;
-  padding-bottom: 56px; /* clear the fixed site-footer */
+  padding-bottom: 34px; /* clear the fixed site-footer */
   display: flex; flex-direction: column;
   opacity: 0; pointer-events: none;
   transition: opacity var(--trans);
@@ -565,10 +565,44 @@ html, body {
 }
 .dhondt-message-box { flex: 1; }
 .dhondt-message {
-  font-size: 13px; line-height: 1.5; color: var(--text);
+  font-size: 15px; line-height: 1.5; color: var(--text);
 }
 .dhondt-message strong { color: var(--gold); }
 .dhondt-message .dv    { color: var(--divisor); font-weight: 700; }
+
+/* D'Hondt intro overlay */
+.dhondt-intro-overlay {
+  position: absolute; inset: 0;
+  z-index: 50;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(7, 15, 25, 0.82);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  padding: 16px;
+  transition: opacity 0.3s ease;
+}
+.dhondt-intro-overlay.hidden {
+  opacity: 0; pointer-events: none;
+}
+.dhondt-intro-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px 28px;
+  max-width: 520px; width: 100%;
+  max-height: 88dvh;
+  overflow-y: auto;
+  box-shadow: var(--shadow);
+  display: flex; flex-direction: column; gap: 16px;
+  text-align: center;
+}
+.dhondt-intro-card h3 {
+  font-size: 18px; color: var(--gold); font-weight: 800;
+}
+#dhondt-intro-text {
+  font-size: 14px; line-height: 1.65; color: var(--text);
+}
+#dhondt-intro-text .dv { color: var(--divisor); font-weight: 700; }
 
 /* ════════════════════════════════════════════════════════════
    PHASE 5 – COMPLETE
@@ -705,7 +739,7 @@ html, body {
 
 /* ── Ensure 44px minimum touch targets on all mobile ────── */
 @media (max-width: 1024px) {
-  .btn { min-height: 44px; }
+  .btn:not(.footer-feedback) { min-height: 44px; }
 }
 
 /* ── Portrait phones: iPhone 15/16/17 (390–393px),
@@ -747,8 +781,8 @@ html, body {
   .ballot-box { width: 98px; height: 132px; flex: 0 0 98px; }
 
   /* Phase 4 – wrap d'hondt boxes, allow section to scroll */
-  .dhondt-top             { overflow: visible; }
-  .dhondt-boxes-section   { overflow-x: hidden; overflow-y: auto; }
+  .dhondt-top             { overflow-y: auto; }
+  .dhondt-boxes-section   { overflow: visible; }
   .dhondt-boxes-row {
     flex-wrap: wrap;
     height: auto;
@@ -760,7 +794,7 @@ html, body {
   .dhondt-boxes-row .ballot-box { width: 84px; height: 164px; flex: 0 0 84px; }
   .seats-row    { flex-wrap: wrap; justify-content: center; gap: 8px; }
   .seat         { width: 46px; height: 46px; }
-  .dhondt-message { font-size: 12px; line-height: 1.4; }
+  .dhondt-message { font-size: 14px; line-height: 1.4; }
 }
 
 /* ── Wider portrait phones (Pixel 7 at 412px) ────────────── */
