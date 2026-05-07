@@ -20,11 +20,9 @@
   --effective:   #60d0f0;   /* adjusted / effective vote count */
   --divisor:     #f0882c;   /* divisor values */
 
-  --radius:      8px;
-  --shadow:      0 4px 20px rgba(0,0,0,0.5);
-  --trans:       0.5s ease;
-  --footer-h:    34px;
-  --kofi-widget-w: 155px; /* approximate width of Ko-fi floating-chat button */
+  --radius:  8px;
+  --shadow:  0 4px 20px rgba(0,0,0,0.5);
+  --trans:   0.5s ease;
 }
 
 html, body {
@@ -48,7 +46,7 @@ html, body {
 /* ── Phases ─────────────────────────────────────────────── */
 .phase {
   position: absolute; inset: 0;
-  padding-bottom: var(--footer-h); /* clear the fixed site-footer */
+  padding-bottom: 34px; /* clear the fixed site-footer */
   display: flex; flex-direction: column;
   opacity: 0; pointer-events: none;
   transition: opacity var(--trans);
@@ -559,7 +557,7 @@ html, body {
   display: flex; align-items: center; gap: 10px;
   background: rgba(255,255,255,0.05);
   border-radius: var(--radius);
-  padding: 8px var(--kofi-widget-w) 8px 12px;
+  padding: 8px 12px;
 }
 .dhondt-bottom .btn {
   min-width: 140px;
@@ -860,7 +858,7 @@ html, body {
   .dhondt-boxes-row .bbox-name  { font-size: 7px; }
   .dhondt-boxes-row .bbox-votes    { font-size: 10px; }
   .dhondt-boxes-row .bbox-adjusted { font-size: 10px; }
-  .dhondt-bottom    { padding: 5px var(--kofi-widget-w) 5px 8px; }
+  .dhondt-bottom    { padding: 5px 8px; }
   .dhondt-message   { font-size: 11px; line-height: 1.4; }
 
   /* Phase 5 */
@@ -925,6 +923,19 @@ html, body {
   opacity: 0.6;
 }
 
+.footer-kofi {
+  font-size: 9px;
+  color: #ff5e5b;
+  text-decoration: none;
+  opacity: 0.7;
+  white-space: nowrap;
+}
+.footer-kofi:hover,
+.footer-kofi:focus-visible {
+  opacity: 1;
+  color: #ff8a88;
+}
+
 .footer-feedback {
   font-size: 9px;
   color: var(--muted);
@@ -936,13 +947,6 @@ html, body {
 .footer-feedback:focus-visible {
   opacity: 1;
   color: var(--text);
-}
-
-/* ── Ko-fi floating widget ─────────────────────────────── */
-/* Lift the widget above the fixed site-footer so it never
-   overlaps buttons or other interactive elements             */
-#kofi-widget-overlay {
-  bottom: calc(var(--footer-h) + 6px) !important;
 }
 
 /* ── Landscape tablet / desktop (1024px+ wide, 600px+ tall) ─ */
