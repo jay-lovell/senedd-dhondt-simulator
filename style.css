@@ -24,7 +24,6 @@
   --shadow:      0 4px 20px rgba(0,0,0,0.5);
   --trans:       0.5s ease;
   --footer-h:    34px;
-  --kofi-widget-w: 155px; /* approximate width of Ko-fi floating-chat button */
 }
 
 html, body {
@@ -559,7 +558,7 @@ html, body {
   display: flex; align-items: center; gap: 10px;
   background: rgba(255,255,255,0.05);
   border-radius: var(--radius);
-  padding: 8px var(--kofi-widget-w) 8px 12px;
+  padding: 8px 12px;
 }
 .dhondt-bottom .btn {
   min-width: 140px;
@@ -860,7 +859,7 @@ html, body {
   .dhondt-boxes-row .bbox-name  { font-size: 7px; }
   .dhondt-boxes-row .bbox-votes    { font-size: 10px; }
   .dhondt-boxes-row .bbox-adjusted { font-size: 10px; }
-  .dhondt-bottom    { padding: 5px var(--kofi-widget-w) 5px 8px; }
+  .dhondt-bottom    { padding: 5px 8px; }
   .dhondt-message   { font-size: 11px; line-height: 1.4; }
 
   /* Phase 5 */
